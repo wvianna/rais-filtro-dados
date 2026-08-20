@@ -1,0 +1,45 @@
+# ---------------------------------------------------------------------------
+# RAIS · Filtro de Dados — .gitignore
+# ---------------------------------------------------------------------------
+
+# Ambiente Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.python-version
+
+# Índices e artefatos gerados pelo sistema
+.rais_index/
+*.sqlite
+*.sqlite3
+
+# Dados derivados / amostras geradas
+dados/amostra_com_identificador.csv
+
+# Ferramentas
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# IDE / editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+#ignora todos os arquivos dentro da pasta dados, exceto o arquivo amostra_com_identificador.csv
+dados/*
+!dados/amostra_com_identificador.csv

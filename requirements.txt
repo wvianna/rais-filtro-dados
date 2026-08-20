@@ -1,0 +1,8 @@
+# RAIS · Filtro de Dados — dependências
+#
+# O sistema usa APENAS a biblioteca padrão do Python 3 (stdlib):
+# csv, sqlite3, http.server, json, unittest.  Nenhum pacote externo é
+# necessário para executar ou testar.
+
+# --- Ferramentas de desenvolvimento (opcionais) ---------------------------
+# pytest>=7.0        # se preferir rodar os testes com pytest

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RAIS · Filtro de Dados</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <p class="eyebrow">Sistema de Consulta · Base de Vínculos</p>
+      <h1>RAIS <span class="amp">·</span> Filtro de Dados</h1>
+      <p class="lede">
+        Relação Anual de Informações Sociais — análise setorial e geográfica
+        com processamento <em>streaming</em> para bases de 5 GB+.
+      </p>
+    </div>
+    <div class="masthead-meta">
+      <div class="meta-chip" id="meta-version">v–</div>
+      <div class="meta-chip" id="meta-status"><span class="dot"></span>conectando</div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- ======================= CONTROLES ======================= -->
+    <aside class="panel controls">
+      <div class="panel-title">
+        <span class="panel-index">01</span>
+        <h2>Parâmetros</h2>
+      </div>
+
+      <label class="field">
+        <span class="field-label">Arquivo de base</span>
+        <select id="file-select" class="input"></select>
+        <span class="field-hint" id="file-hint">carregando arquivos…</span>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Município (código IBGE)</span>
+        <input id="municipio" class="input" list="list-municipios" placeholder="ex.: 330100" inputmode="numeric" autocomplete="off" />
+        <span class="field-hint" id="municipio-hint"></span>
+      </label>
+      <datalist id="list-municipios"></datalist>
+
+      <label class="field">
+        <span class="field-label">Subclasse CNAE 2.0</span>
+        <input id="subclasse" class="input" list="list-subclasses" placeholder="ex.: 2342702" inputmode="numeric" autocomplete="off" />
+        <span class="field-hint" id="subclasse-hint"></span>
+      </label>
+      <datalist id="list-subclasses"></datalist>
+
+      <div class="index-box">
+        <label class="check">
+          <input type="checkbox" id="use-index" />
+          <span>Usar índice persistente (acelera bases grandes)</span>
+        </label>
+        <div class="index-actions">
+          <button id="btn-index" class="btn ghost" type="button">Construir índice</button>
+          <span class="index-state" id="index-state"></span>
+        </div>
+      </div>
+
+      <button id="btn-analyze" class="btn primary" type="button">
+        <span class="btn-label">Analisar</span>
+        <span class="btn-arrow">→</span>
+      </button>
+
+      <button id="btn-ref" class="btn text" type="button">↺ Caso de referência (330100 · 2342702)</button>
+    </aside>
+
+    <!-- ======================= RESULTADOS ======================= -->
+    <section class="panel results">
+      <div class="panel-title">
+        <span class="panel-index">02</span>
+        <h2>Resultados</h2>
+        <span class="scan-chip" id="scan-chip">aguardando consulta</span>
+      </div>
+
+      <div id="empty-state" class="empty-state">
+        <p>Defina os parâmetros e clique em <strong>Analisar</strong>.</p>
+        <p class="muted">O sistema processa o arquivo em streaming e nunca o carrega integralmente em memória.</p>
+      </div>
+
+      <div id="banner" class="banner hidden" role="alert"></div>
+
+      <div id="results" class="hidden">
+        <div class="cards">
+          <div class="card card-accent">
+            <span class="card-label">Estabelecimentos (empresas)</span>
+            <span class="card-value" id="r-empresas">–</span>
+            <span class="card-sub" id="r-empresas-sub"></span>
+          </div>
+          <div class="card">
+            <span class="card-label">Vínculos (funcionários)</span>
+            <span class="card-value" id="r-vinculos">–</span>
+            <span class="card-sub" id="r-vinculos-sub"></span>
+          </div>
+          <div class="card">
+            <span class="card-label">Vínculos considerados p/ empresas</span>
+            <span class="card-value" id="r-considerados">–</span>
+            <span class="card-sub">com TIPO ESTBL válido</span>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="block">
+            <h3 class="block-title">Funcionários por estabelecimento</h3>
+            <div class="table-wrap">
+              <table class="table" id="t-empresas">
+                <thead><tr><th>Identificador</th><th>Tipo</th><th class="num">Vínculos</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="block">
+            <h3 class="block-title">Distribuição de escolaridade</h3>
+            <div class="table-wrap">
+              <table class="table bars" id="t-escolaridade">
+                <thead><tr><th>Cód.</th><th>Nível</th><th class="num">Freq.</th><th class="num">%</th><th>Barras</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="footnote" id="footnote"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>RAIS · Filtro de Dados</span>
+    <span id="footer-meta">—</span>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+Dicionário de Dados Técnico: Estrutura e Metadados da Base RAIS para Sistemas de Consulta
+
+1. Introdução e Contexto Estratégico
+
+A Relação Anual de Informações Sociais (RAIS) representa a espinha dorsal estatística do mercado de trabalho formal brasileiro. Como um registro administrativo de alta complexidade e abrangência, sua utilidade transcende o mero armazenamento de dados, servindo como base para políticas públicas, estudos macroeconômicos e inteligência de negócios. No entanto, a utilidade dessa base é diretamente proporcional à precisão técnica aplicada na interpretação de seus metadados. Para arquitetos de soluções e engenheiros de software, a compreensão profunda das variáveis não é opcional; é a garantia de que o sistema de consulta manterá a integridade referencial e a confiabilidade dos insights extraídos.
+
+Sob a ótica da Engenharia de Software, a padronização rigorosa das variáveis — incluindo a definição de tipos, tamanhos em bytes e domínios de valores — estabelece o "contrato de dados" necessário para a interoperabilidade entre sistemas. Este contrato permite que agentes de IA e motores de busca processem volumes massivos (Big Data) de forma determinística. Sem uma especificação técnica que defina claramente como tratar campos nulos, categorias "ignoradas" ou a escala das informações, qualquer ferramenta de análise torna-se suscetível a ruídos estatísticos e falhas de processamento. A transição do dado bruto para a decisão estratégica exige, portanto, uma arquitetura que respeite a volumetria e a semântica oficial da fonte.
+
+2. Diretrizes de Arquitetura e Implementação do Software
+
+A implementação do sistema de consulta web deve observar restrições de performance e escalabilidade, dado que o dataset completo da RAIS ultrapassa a marca de 5 GB, contrastando com os arquivos de teste em escala de KB.
+
+* Gerenciamento de Memória e Escala: O motor de processamento backend deve, obrigatoriamente, evitar o carregamento total dos arquivos superiores a 5 GB na memória RAM. Deve-se implementar processamento orientado a eventos (streaming) ou a utilização de buffers de leitura para garantir a estabilidade do ambiente web sob carga.
+* Seleção Dinâmica de Fonte: A interface frontend deve permitir a seleção dinâmica do arquivo base (dataset). O ciclo de desenvolvimento e a validação de CI/CD devem utilizar o arquivo parcial (KB), enquanto o ambiente de produção deve ser configurado para o processamento otimizado da base completa (5 GB+).
+* Persistência e Tipagem: O software deve garantir que filtros e agregações sejam performáticos, utilizando indexação nos campos de alta cardinalidade, como códigos de municípios e subclasses de atividade econômica.
+
+3. Catálogo Técnico de Variáveis (Layout RAIS Trabalhador)
+
+Abaixo, detalha-se a semântica e os limites técnicos das variáveis contidas no arquivo RAIS_vinculos_layout_layout.csv.
+
+Nome da Variável	Descrição da Variável	Tamanho (Bytes)	Valor na Fonte
+MUNICIPIO	Município de localização do estabelecimento	6	999999, <UF>9999 ou -1
+SB CLAS 20	Subclasse de Atividade Econômica (CNAE 2.0)	7	CLAS <9999999>
+CLAS CNAE 20	Classe de Atividade Econômica (CNAE 2.0)	5	CLASSE <99999>
+GR INSTRUCAO	Grau de instrução / Escolaridade	2	1 a 11 e -1
+CBO 2002	Classificação Brasileira de Ocupações	6	CBO <999999> ou -1
+TIPO ESTBL	Tipo de estabelecimento (CNPJ, CEI, etc.)	2	1, 3, 9 ou -1
+CAUSA DESLI	Causa do desligamento do trabalhador	2	0 a 80 e -1
+NACIONALIDAD	Código da nacionalidade do trabalhador	2	10 a 80 e -1
+NAT JURIDICA	Natureza Jurídica do estabelecimento	4	1015 a 5037 e -1
+
+Análise de Precisão Técnica e Tipagem: Como Arquiteto de Dados, instruo que variáveis como MUNICIPIO, CBO 2002 e SB CLAS 20 sejam tratadas obrigatoriamente como Strings e não como Inteiros. Esta decisão técnica é vital para preservar os zeros à esquerda (ex: códigos de municípios do Nordeste ou subclasses específicas), cuja perda invalidaria a integridade dos filtros. Além disso, o software deve tratar explicitamente os valores "-1", "{ñ class}" ou códigos como <UF>9999 como "Ignorado", evitando que esses registros distorçam as somas e médias estatísticas.
+
+4. Mapeamento de Domínios e Taxonomias de Valores
+
+Abaixo, sistematizam-se as tabelas de referência para garantir a correta tradução semântica dos códigos.
+
+4.1 Grau de Instrução
+
+Fundamental para a composição do perfil de capital humano do setor:
+
+* 1 a 5: Analfabeto até Fundamental Completo.
+* 6 e 7: Médio Incompleto e Médio Completo.
+* 8 e 9: Superior Incompleto e Superior Completo.
+* 10 e 11: Mestrado e Doutorado.
+* -1: Ignorado.
+
+4.2 Causas de Desligamento
+
+* 00: Não desligado no ano (vínculo ativo).
+* 10 e 11: Rescisão por iniciativa do empregador (com ou sem justa causa).
+* 60 a 64: Falecimento (incluindo acidente de trabalho e doença profissional).
+* 70 a 80: Diversas modalidades de aposentadoria (compulsória, por idade, especial, etc.).
+
+4.3 Nacionalidade e Natureza Jurídica
+
+* Nacionalidade: 10 (Brasileira), 21 (Argentina), 22 (Boliviana), 36 (Norte-Americana), 45 (Portuguesa), entre outras conforme layout.
+* Natureza Jurídica: 1015 (Poder Executivo Federal), 2062 (Sociedade Cota Responsabilidade Limitada), 2143 (Cooperativa), 3034 (Cartório).
+
+4.4 Contraste de Taxonomias (CNAE 1.0 vs 2.0)
+
+A arquitetura diferencia a CLAS CNAE 95 (CNAE 1.0) da SB CLAS 20 (CNAE 2.0). Enquanto a versão 1.0 possui 5 bytes e uma visão macro, a versão 2.0 Subclasse utiliza 7 bytes, permitindo uma granularidade essencial para identificar nichos. Por exemplo, apenas a CNAE 2.0 permite filtrar isoladamente a "Fabricação de artefatos de cerâmica e barro cozidos para uso na construção" (2342702), dado que na versão anterior ramos de revestimento (azulejos) e construção bruta eram frequentemente agrupados.
+
+5. Especificação Lógica da Consulta de Referência (Caso de Uso)
+
+O algoritmo lógico para a execução da tarefa específica deve seguir o fluxo abaixo:
+
+1. Filtragem de Registros:
+  * Geográfica: Aplicar predicado MUNICIPIO == "330100" (Campos dos Goytacazes, RJ).
+  * Setorial: Aplicar predicado SB CLAS 20 == "2342702" (Fabricação de artefatos de cerâmica e barro cozidos).
+2. Identificação de Unicidade de Empresas:
+  * O software deve realizar a contagem de estabelecimentos únicos. Como o layout de vínculos apresenta múltiplos registros por empresa (um por trabalhador), a unicidade deve ser garantida pela extração distinta do identificador do estabelecimento (baseado na coluna de identificação e filtrado por TIPO ESTBL).
+3. Cálculo de Métricas Laborais:
+  * Contagem de Vínculos: Somatório simples de registros após a aplicação dos filtros setorial e geográfico.
+  * Distribuição de Escolaridade: Agrupar os registros pela variável GR INSTRUCAO para gerar a frequência estatística e percentual por nível instrucional.
+4. Tratamento de Exceções:
+  * Registros com GR INSTRUCAO == -1 ou SB CLAS 20 == {ñ class} devem ser apresentados em categoria separada denominada "Informação Não Disponível/Ignorada" para não corromper a base de cálculo dos níveis educacionais definidos (1 a 11).
+
+Este mapeamento técnico constitui a fundação para a automação da consulta, assegurando que o sistema opere com rigor estatístico e eficiência computacional.
+

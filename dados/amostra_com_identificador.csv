@@ -1,0 +1,25 @@
+Bairros SP - Código,Bairros Fortaleza - Código,Bairros RJ - Código,Causa Afastamento 1 - Código,Causa Afastamento 2 - Código,Causa Afastamento 3 - Código,Motivo Desligamento - Código,CBO 2002 Ocupação - Código,CNAE 2.0 Classe - Código,CNAE 95 Classe - Código,Distritos SP - Código,Ind Vínculo Ativo 31/12 - Código,Faixa Etária - Código,Faixa Rem Média (SM) - Código,Faixa Hora Contrat - Código,Faixa Rem Dez (SM) - Código,Faixa Tempo Emprego - Código,Escolaridade Após 2005 - Código,Qtd Hora Contr,Idade,Ind CEI Vinculado - Código,Ind Estabelecimento Participante SIMPLES - Código,Mês Admissão - Código,Mês Desligamento - Código,Município Trab - Código,Município - Código,Nacionalidade - Código,Natureza Jurídica - Código,Ind Portador Defic - Código,Qtd Dias Afastamento,Raça Cor - Código,Região Adm DF - Código,Vl Rem Dezembro Nom,Vl Rem Dezembro (SM),Vl Rem Média Nom,Vl Rem Média (SM),CNAE 2.0 Subclasse - Codigo,Sexo - Código,Tamanho Estabelecimento - Código,Tempo Emprego,Tipo Admissão Trabalhador - Código,Tipo Estabelecimento - Código,Tipo Estabelecimento - Nome,Tipo Deficiência - Código,Tipo Vínculo - Código,IBGE Subsetor - Código,Vl Rem Janeiro SC,Vl Rem Fevereiro SC,Vl Rem Março SC,Vl Rem Abril SC,Vl Rem Maio SC,Vl Rem Junho SC,Vl Rem Julho SC,Vl Rem Agosto SC,Vl Rem Setembro SC,Vl Rem Outubro SC,Vl Rem Novembro SC,Ano Chegada Brasil,Ind Trabalho Intermitente - Código,Ind Trabalho Parcial - Código,Ind Vínculo Abandonado - Código,Categoria Trabalhador - Código,Identificad
+,,,,,,,1001,,,,,,,,,,1,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,01000000000100
+,,,,,,,1002,,,,,,,,,,2,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,01000000000100
+,,,,,,,1003,,,,,,,,,,3,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,01000000000100
+,,,,,,,1004,,,,,,,,,,4,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,01000000000100
+,,,,,,,1005,,,,,,,,,,5,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,01000000000100
+,,,,,,,1006,,,,,,,,,,6,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,01000000000100
+,,,,,,,1007,,,,,,,,,,7,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,01000000000100
+,,,,,,,1008,,,,,,,,,,8,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,01000000000100
+,,,,,,,1009,,,,,,,,,,9,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,01000000000100
+,,,,,,,1010,,,,,,,,,,10,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,01000000000100
+,,,,,,,1011,,,,,,,,,,2,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,02000000000200
+,,,,,,,1012,,,,,,,,,,2,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,02000000000200
+,,,,,,,1013,,,,,,,,,,4,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,02000000000200
+,,,,,,,1014,,,,,,,,,,6,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,02000000000200
+,,,,,,,1015,,,,,,,,,,-1,,,,,,,,330100,,,,,,,,,,,2342702,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,02000000000200
+,,,,,,,1016,,,,,,,,,,11,,,,,,,,330100,,,,,,,,,,,2342702,,,,,3,CEI,,,,,,,,,,,,,,,,,,,,03000000000300
+,,,,,,,1017,,,,,,,,,,11,,,,,,,,330100,,,,,,,,,,,2342702,,,,,3,CEI,,,,,,,,,,,,,,,,,,,,03000000000300
+,,,,,,,1018,,,,,,,,,,-1,,,,,,,,330100,,,,,,,,,,,2342702,,,,,3,CEI,,,,,,,,,,,,,,,,,,,,03000000000300
+,,,,,,,2000,,,,,,,,,,7,,,,,,,,330100,,,,,,,,,,,2342702,,,,,-1,IGNORADO,,,,,,,,,,,,,,,,,,,,99999999999999
+,,,,,,,3000,,,,,,,,,,9,,,,,,,,310620,,,,,,,,,,,8513900,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,00000000000099
+,,,,,,,3000,,,,,,,,,,7,,,,,,,,330455,,,,,,,,,,,8411600,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,00000000000088
+,,,,,,,3000,,,,,,,,,,5,,,,,,,,330100,,,,,,,,,,,{ñ class},,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,00000000000077
+,,,,,,,3000,,,,,,,,,,5,,,,,,,,330100,,,,,,,,,,,4711302,,,,,5,CAEPF,,,,,,,,,,,,,,,,,,,,00000000000066
+,,,,,,,3000,,,,,,,,,,3,,,,,,,,320530,,,,,,,,,,,4744005,,,,,1,CNPJ,,,,,,,,,,,,,,,,,,,,00000000000055
