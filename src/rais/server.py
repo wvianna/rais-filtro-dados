@@ -93,6 +93,11 @@ class RaisServer:
         return {"file": df.as_dict(), "index": stats or {"exists": False}}
 
     def api_index_build(self, file_name: str) -> Dict:
+        # Aceita tanto a string do arquivo quanto o payload JSON (por robustez).
+        if isinstance(file_name, dict):
+            file_name = file_name.get("file") or file_name.get("arquivo") or ""
+        if not file_name:
+            return {"error": "campo 'file' obrigatório"}
         df = files.find_file(file_name, self.data_dir)
         if df is None:
             return {"error": "arquivo não encontrado", "file": file_name}
@@ -211,7 +216,7 @@ class RaisHandler(BaseHTTPRequestHandler):
             if path == "/api/analyze":
                 self._send_json(200, app.api_analyze(payload))
             elif path == "/api/index":
-                self._send_json(200, app.api_index_build(payload))
+                self._send_json(200, app.api_index_build(payload.get("file") or ""))
             else:
                 self._send_json(404, {"error": "rota não encontrada", "path": path})
         except BrokenPipeError:

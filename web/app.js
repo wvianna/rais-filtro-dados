@@ -410,6 +410,11 @@ function csvEscape(v) {
   return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
 
+// Formata decimal com vírgula como separador (padrão pt-BR) no CSV.
+function fmtDec(v) {
+  return String(v).replace(".", ",");
+}
+
 function buildAnalysisCsv(d) {
   const est = d.estabelecimentos || {};
   const ign = d.ignorados_escolaridade || {};
@@ -427,13 +432,13 @@ function buildAnalysisCsv(d) {
   linhas.push("resumo,estabelecimentos," + String(est.quantidade ?? ""));
   linhas.push("resumo,estabelecimentos_estimado," + (est.estimado ? "sim" : "nao"));
   linhas.push("resumo,vinculos_considerados," + String(est.total_vinculos_considerados ?? ""));
-  linhas.push("resumo,tempo_processamento_s," + String(d.elapsed_s ?? 0));
+  linhas.push("resumo,tempo_processamento_s," + csvEscape(fmtDec(d.elapsed_s ?? 0)));
   linhas.push("");
   linhas.push("distribuicao_escolaridade,codigo,rotulo,frequencia,percentual");
   for (const e of d.escolaridade || []) {
-    linhas.push("distribuicao_escolaridade," + [e.codigo, e.rotulo, e.frequencia, (e.percentual ?? 0).toFixed(1)].map(csvEscape).join(","));
+    linhas.push("distribuicao_escolaridade," + [e.codigo, e.rotulo, e.frequencia, fmtDec((e.percentual ?? 0).toFixed(1))].map(csvEscape).join(","));
   }
-  linhas.push("distribuicao_escolaridade," + ["-1", ign.rotulo || "Informação Não Disponível/Ignorada", ign.frequencia ?? 0, (ign.percentual ?? 0).toFixed(1)].map(csvEscape).join(","));
+  linhas.push("distribuicao_escolaridade," + ["-1", ign.rotulo || "Informação Não Disponível/Ignorada", ign.frequencia ?? 0, fmtDec((ign.percentual ?? 0).toFixed(1))].map(csvEscape).join(","));
   if (est.disponivel && (est.por_estabelecimento || []).length) {
     linhas.push("");
     linhas.push("funcionarios_por_estabelecimento,identificador,tipo_estabelecimento,vinculos");

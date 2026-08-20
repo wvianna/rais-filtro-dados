@@ -73,6 +73,17 @@ class TestServer(unittest.TestCase):
         d = self._post("/api/analyze", {"file": "nao_existe.csv"})
         self.assertIn("error", d)
 
+    def test_index_build(self):
+        # Regressão: o endpoint POST /api/index deve aceitar {file} e construir
+        # o índice (um bug anterior passava o payload inteiro -> 500).
+        d = self._post("/api/index", {"file": "amostra_com_identificador.csv"})
+        self.assertNotIn("error", d, d)
+        self.assertEqual(d["indexed_rows"], 24)
+
+    def test_index_build_sem_arquivo(self):
+        d = self._post("/api/index", {})
+        self.assertIn("error", d)
+
     def test_pagina_inicial(self):
         with urllib.request.urlopen(self.base + "/", timeout=15) as r:
             body = r.read().decode("utf-8")
