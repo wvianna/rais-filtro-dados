@@ -163,6 +163,65 @@ body::before {
 .theme-toggle:hover { border-color: var(--accent); transform: translateY(-1px); }
 .theme-toggle:active { transform: translateY(0); }
 
+/* ------------------------------------------------------------
+   TOOLTIPS de ajuda rápida ("?" em cada quadro)
+   Exibe o conteúdo de data-tip ao passar o mouse / focar.
+   ------------------------------------------------------------ */
+.tip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--ink-dim);
+  font-size: 10.5px;
+  font-family: var(--mono);
+  line-height: 1;
+  cursor: help;
+  margin-left: 7px;
+  vertical-align: middle;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.tip:hover, .tip:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+  outline: none;
+}
+.tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(280px, 74vw);
+  padding: 9px 11px;
+  border-radius: 4px;
+  background: var(--panel-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  font-size: 11.5px;
+  font-family: var(--mono);
+  line-height: 1.5;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s, visibility 0.15s;
+  z-index: 60;
+}
+.tip:hover::after, .tip:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* -------------------------------------------------- layout */
 .layout {
   display: grid;
@@ -354,21 +413,35 @@ select.input:invalid { color: var(--ink-faint); }
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-dim);
-  margin-bottom: 8px;
+  c------------------------------------------------------------
+   BLOCOS DE RESULTADO e HERO do gráfico de pizza
+   A escolaridade (pizza) ganha destaque: bloco em largura total,
+   com painel próprio e gráfico maior.
+   ------------------------------------------------------------ */
+.block { margin-bottom: 24px; }
+.block-hero {
+  background: linear-gradient(180deg, var(--panel), var(--bg-2));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 24px;
 }
-.card-value {
-  display: block;
-  font-family: var(--mono);
-  font-weight: 600;
-  font-size: 34px;
-  line-height: 1;
-  color: var(--ink);
-}
-.card-accent .card-value { color: var(--accent); }
-.card-sub { display: block; margin-top: 8px; font-size: 11px; color: var(--ink-faint); }
 
-/* split blocks */
+/* gráfico de pizza + legenda da escolaridade */
+.chart-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.pie-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0;
+}
+#pie-escolaridade {
+  width: min(100%, 32
 .split {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -445,13 +518,15 @@ select.input:invalid { color: var(--ink-faint); }
   font-family: var(--mono);
   font-size: 11.5px;
   padding: 4px 6px;
-  border-radius: 3px;
-}
-.legend-item:hover { background: var(--accent-soft); }
-.legend-swatch {
-  flex: 0 0 12px;
-  width: 12px;
-  height: 12px;
+  border-radius: 3, pizza à esquerda (maior) + legenda à direita */
+@media (min-width: 980px) {
+  .chart-row {
+    grid-template-columns: minmax(300px, 1.15fr) 1fr;
+    align-items: center;
+    gap: 28px;
+  }
+  #pie-escolaridade { width: min(100%, 340px); }
+  .legend { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)
   border-radius: 3px;
   border: 1px solid rgba(0, 0, 0, 0.15);
 }
