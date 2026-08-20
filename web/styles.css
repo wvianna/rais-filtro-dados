@@ -27,6 +27,36 @@
   --shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
 }
 
+/* ------------------------------------------------------------
+   TEMA CLARO — "boletim oficial em papel"
+   Ativa com data-theme="light" no <html> (persistido em localStorage).
+   A interface inteira é orientada por variáveis, então basta sobrescrevê-las.
+   ------------------------------------------------------------ */
+:root[data-theme="light"] {
+  --bg: #f3eee2;
+  --bg-2: #faf6ec;
+  --panel: #fffdf6;
+  --panel-2: #efe8d8;
+  --line: #d4cbb6;
+  --line-soft: #e3dbc8;
+  --ink: #1d2530;
+  --ink-dim: #4d5663;
+  --ink-faint: #7d8490;
+  --accent: #c2411d;
+  --accent-soft: rgba(194, 65, 29, 0.12);
+  --teal: #1f7783;
+  --ok: #2e7d4f;
+  --warn: #8f6500;
+  --danger: #c2411d;
+  --shadow: 0 24px 60px rgba(70, 58, 32, 0.16);
+}
+
+/* Ajustes pontuais de cor que não usam variáveis (hover e banner de erro). */
+:root[data-theme="light"] .table tbody tr:hover { background: rgba(29, 37, 48, 0.04); }
+:root[data-theme="light"] .banner.error { color: #a33a1b; }
+:root[data-theme="light"] .meta-chip .dot.online { background: var(--ok); }
+:root[data-theme="light"] .card-accent { border-top-color: var(--accent); }
+
 * { box-sizing: border-box; }
 
 html, body { margin: 0; padding: 0; }
@@ -116,6 +146,22 @@ body::before {
   display: inline-block;
 }
 .meta-chip.ok .dot { background: var(--ok); }
+
+/* Botão de alternância de tema (claro/escuro) */
+.theme-toggle {
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 1;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: var(--bg-2);
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.theme-toggle:hover { border-color: var(--accent); transform: translateY(-1px); }
+.theme-toggle:active { transform: translateY(0); }
 
 /* -------------------------------------------------- layout */
 .layout {
@@ -367,20 +413,60 @@ select.input:invalid { color: var(--ink-faint); }
 .table tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
 .table .num { text-align: right; }
 
-.bars .bar-cell { width: 40%; }
-.bar-track {
-  background: var(--line-soft);
-  border-radius: 2px;
-  height: 10px;
-  overflow: hidden;
+/* gráfico de pizza + legenda da escolaridade */
+.chart-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 14px;
 }
-.bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--teal), #6fc1cc);
-  border-radius: 2px;
-  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+.pie-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0;
 }
-.bar-fill.accent { background: linear-gradient(90deg, var(--accent), #f07a4f); }
+#pie-escolaridade {
+  width: min(100%, 240px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.25));
+}
+.legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 4px 14px;
+  padding-right: 4px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 4px 6px;
+  border-radius: 3px;
+}
+.legend-item:hover { background: var(--accent-soft); }
+.legend-swatch {
+  flex: 0 0 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+.legend-text { display: flex; flex-direction: column; line-height: 1.3; }
+.legend-label { color: var(--ink); }
+.legend-value { color: var(--ink-faint); font-size: 10.5px; }
+
+/* Em telas largas (blocos lado a lado), pizza à esquerda + legenda à direita */
+@media (min-width: 980px) {
+  .chart-row {
+    grid-template-columns: minmax(220px, 1fr) 1.3fr;
+    align-items: center;
+  }
+  #pie-escolaridade { width: min(100%, 260px); }
+}
 
 .footnote {
   margin-top: 18px;

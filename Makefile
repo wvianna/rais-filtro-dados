@@ -2,7 +2,7 @@
 PYTHON ?= python3
 PYTHONPATH := src
 
-.PHONY: help files schema analyze sample index serve test lint clean
+.PHONY: help files schema analyze sample index serve start stop test lint clean
 
 help:
 	@echo "Alvos disponíveis:"
@@ -10,7 +10,9 @@ help:
 	@echo "  make sample   - gera amostra com coluna Identificad"
 	@echo "  make analyze  - análise do caso de referência (amostra)"
 	@echo "  make index    - constrói índice da amostra"
-	@echo "  make serve    - inicia o servidor web (porta 8000)"
+	@echo "  make start    - inicia o serviço web em segundo plano"
+	@echo "  make stop     - encerra o serviço web"
+	@echo "  make serve    - inicia o servidor web em primeiro plano (Ctrl+C)"
 	@echo "  make test     - executa a suíte de testes"
 	@echo "  make clean    - remove índices e caches"
 
@@ -28,6 +30,12 @@ analyze: sample
 index: sample
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m rais index \
 		--file dados/amostra_com_identificador.csv
+
+start:
+	./scripts/start.sh
+
+stop:
+	./scripts/stop.sh
 
 serve:
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) scripts/run_server.py

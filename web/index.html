@@ -22,6 +22,8 @@
       </p>
     </div>
     <div class="masthead-meta">
+      <button class="meta-chip theme-toggle" id="theme-toggle" type="button"
+              aria-label="Mudar para tema claro" title="Alternar tema claro/escuro">☀️</button>
       <div class="meta-chip" id="meta-version">v–</div>
       <div class="meta-chip" id="meta-status"><span class="dot"></span>conectando</div>
     </div>
@@ -121,9 +123,16 @@
 
           <div class="block">
             <h3 class="block-title">Distribuição de escolaridade</h3>
+            <div class="chart-row">
+              <div class="pie-wrap">
+                <canvas id="pie-escolaridade" width="280" height="280"
+                        aria-label="Gráfico de pizza da distribuição de escolaridade"></canvas>
+              </div>
+              <div class="legend" id="legend-escolaridade"></div>
+            </div>
             <div class="table-wrap">
-              <table class="table bars" id="t-escolaridade">
-                <thead><tr><th>Cód.</th><th>Nível</th><th class="num">Freq.</th><th class="num">%</th><th>Barras</th></tr></thead>
+              <table class="table" id="t-escolaridade">
+                <thead><tr><th>Cód.</th><th>Nível</th><th class="num">Freq.</th><th class="num">%</th></tr></thead>
                 <tbody></tbody>
               </table>
             </div>

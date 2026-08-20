@@ -251,15 +251,28 @@ function render(d) {
     tbody.appendChild(tr);
   }
 
-  // ---- tabela de escolaridade
+  // ---- pizza + legenda + tabela de escolaridade
+  const escItens = [];
+  (d.escolaridade || []).forEach((e, i) => {
+    escItens.push({
+      codigo: e.codigo, label: e.rotulo, freq: e.frequencia, pct: e.percentual,
+      color: ESCOLARIDADE_CORES[i % ESCOLARIDADE_CORES.length],
+    });
+  });
+  const ign = d.ignorados_escolaridade;
+  escItens.push({
+    codigo: "-1", label: ign.rotulo, freq: ign.frequencia, pct: ign.percentual,
+    color: ESCOLARIDADE_CORES[ESCOLARIDADE_CORES.length - 1], isIgnored: true,
+  });
+
+  buildLegend(escItens);
+  drawPie($("#pie-escolaridade"), escItens);
+
   const tb2 = $("#t-escolaridade tbody");
   tb2.innerHTML = "";
-  const max = Math.max(...(d.escolaridade || []).map((e) => e.frequencia), d.ignorados_escolaridade.frequencia || 0, 1);
-  for (const e of d.escolaridade) {
-    tb2.appendChild(escRow(e.codigo, e.rotulo, e.frequencia, e.percentual, max, false));
+  for (const it of escItens) {
+    tb2.appendChild(escRow(it.codigo, it.label, it.freq, it.pct));
   }
-  const ign = d.ignorados_escolaridade;
-  tb2.appendChild(escRow("-1", ign.rotulo, ign.frequencia, ign.percentual, max, true));
 
   // ---- rodapé de contexto
   const ctx = [];
@@ -274,22 +287,85 @@ function render(d) {
   $("#footnote").textContent = ctx.join(" · ") || "Sem contexto adicional de layout.";
 }
 
-function escRow(codigo, rotulo, freq, pct, max, isIgnored) {
+function escRow(codigo, rotulo, freq, pct) {
   const tr = el("tr");
   tr.appendChild(el("td", "", codigo));
   tr.appendChild(el("td", "", rotulo));
   tr.appendChild(el("td", "num", fmtInt(freq)));
   tr.appendChild(el("td", "num", fmtPct(pct)));
-  const w = Math.max(2, (freq / max) * 100);
-  const cell = el("td", "bar-cell");
-  const track = el("div", "bar-track");
-  const fill = el("div", "bar-fill" + (isIgnored ? " accent" : ""));
-  fill.style.width = "0%";
-  track.appendChild(fill);
-  cell.appendChild(track);
-  tr.appendChild(cell);
-  requestAnimationFrame(() => { fill.style.width = w + "%"; });
   return tr;
+}
+
+/* --------------------------------------------------------- gráfico de pizza */
+const ESCOLARIDADE_CORES = [
+  "#e4572e", "#58a4b0", "#e6a13a", "#4e9b5f", "#8a6fd0", "#d9709b",
+  "#5b8dd9", "#a3a33c", "#c17c3a", "#3a9b8f", "#b4546a", "#8b93a1",
+];
+
+let lastPieSlices = null;
+
+function drawPie(canvas, slices) {
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const size = canvas.clientWidth || 280;
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, size, size);
+  lastPieSlices = slices;
+
+  const cx = size / 2, cy = size / 2, radius = size / 2 - 10;
+  const theme = document.documentElement.getAttribute("data-theme");
+  const stroke = theme === "light" ? "#fffdf6" : "#12171f";
+  const total = slices.reduce((s, x) => s + (x.freq || 0), 0);
+
+  ctx.lineWidth = 2;
+  if (!total) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = "rgba(128,128,128,0.12)";
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.stroke();
+    return;
+  }
+
+  let start = -Math.PI / 2;
+  for (const s of slices) {
+    const angle = ((s.freq || 0) / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, radius, start, start + angle);
+    ctx.closePath();
+    ctx.fillStyle = s.color;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.stroke();
+    start += angle;
+  }
+}
+
+function buildLegend(itens) {
+  const leg = $("#legend-escolaridade");
+  if (!leg) return;
+  leg.innerHTML = "";
+  for (const it of itens) {
+    const row = el("div", "legend-item");
+    const sw = el("span", "legend-swatch");
+    sw.style.background = it.color;
+    const txt = el("span", "legend-text");
+    txt.appendChild(el("span", "legend-label", `${it.codigo} — ${it.label}`));
+    txt.appendChild(el("span", "legend-value", `${fmtInt(it.freq)} · ${fmtPct(it.pct)}`));
+    row.appendChild(sw);
+    row.appendChild(txt);
+    leg.appendChild(row);
+  }
+}
+
+function redrawPie() {
+  if (!lastPieSlices) return;
+  drawPie($("#pie-escolaridade"), lastPieSlices);
 }
 
 function showBanner(msg, kind) {
@@ -305,4 +381,30 @@ function hideBanner() {
   b.textContent = "";
 }
 
+/* ------------------------------------------------------------- tema claro/escuro */
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  const btn = $("#theme-toggle");
+  if (btn) {
+    btn.textContent = theme === "dark" ? "☀️" : "🌙";
+    btn.setAttribute("aria-label", theme === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro");
+  }
+  redrawPie();
+}
+
+function initTheme() {
+  const saved = localStorage.getItem("rais-theme");
+  applyTheme(saved === "light" ? "light" : "dark");
+  const btn = $("#theme-toggle");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      const cur = document.documentElement.getAttribute("data-theme");
+      const next = cur === "light" ? "dark" : "light";
+      applyTheme(next);
+      localStorage.setItem("rais-theme", next);
+    });
+  }
+}
+
+initTheme();
 boot();
