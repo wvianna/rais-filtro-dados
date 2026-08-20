@@ -35,6 +35,8 @@
       <div class="panel-title">
         <span class="panel-index">01</span>
         <h2>Parâmetros</h2>
+        <button class="tip" type="button" aria-label="Ajuda: parâmetros"
+                data-tip="Defina o arquivo de base (parcial p/ testes, completo 5 GB+ p/ produção), o município (código IBGE) e a subclasse CNAE 2.0. O índice persistente acelera consultas na base completa.">?</button>
       </div>
 
       <label class="field">
@@ -79,6 +81,8 @@
     <!-- ======================= RESULTADOS ======================= -->
     <section class="panel results">
       <div class="panel-title">
+        <button class="tip" type="button" aria-label="Ajuda: resultados"
+                data-tip="Resumo da consulta: empresas, vínculos e escolaridade dos trabalhadores que atendem aos filtros de município e subclasse.">?</button>
         <span class="panel-index">02</span>
         <h2>Resultados</h2>
         <span class="scan-chip" id="scan-chip">aguardando consulta</span>
@@ -94,48 +98,62 @@
       <div id="results" class="hidden">
         <div class="cards">
           <div class="card card-accent">
-            <span class="card-label">Estabelecimentos (empresas)</span>
+            <span class="card-label">Estabelecimentos (empresas)
+              <button class="tip" type="button" aria-label="Ajuda: estabelecimentos"
+                      data-tip="Número de empresas/estabelecimentos distintos que atendem aos filtros (município + subclasse). A unicidade usa a coluna de identificação (Identificad/CNPJ), considerando apenas vínculos com TIPO ESTBL válido (não ignorado).">?</button>
+            </span>
             <span class="card-value" id="r-empresas">–</span>
             <span class="card-sub" id="r-empresas-sub"></span>
           </div>
           <div class="card">
-            <span class="card-label">Vínculos (funcionários)</span>
+            <span class="card-label">Vínculos (funcionários)
+              <button class="tip" type="button" aria-label="Ajuda: vínculos"
+                      data-tip="Total de vínculos empregatícios (linhas do arquivo RAIS) que atendem aos filtros. Cada vínculo equivale a um trabalhador naquele estabelecimento.">?</button>
+            </span>
             <span class="card-value" id="r-vinculos">–</span>
             <span class="card-sub" id="r-vinculos-sub"></span>
           </div>
           <div class="card">
-            <span class="card-label">Vínculos considerados p/ empresas</span>
+            <span class="card-label">Vínculos considerados p/ empresas
+              <button class="tip" type="button" aria-label="Ajuda: vínculos considerados"
+                      data-tip="Parcela dos vínculos cujo estabelecimento tem TIPO ESTBL válido (diferente de -1/Ignorado). É a base utilizada para a contagem de empresas.">?</button>
+            </span>
             <span class="card-value" id="r-considerados">–</span>
             <span class="card-sub">com TIPO ESTBL válido</span>
           </div>
         </div>
 
-        <div class="split">
-          <div class="block">
-            <h3 class="block-title">Funcionários por estabelecimento</h3>
-            <div class="table-wrap">
-              <table class="table" id="t-empresas">
-                <thead><tr><th>Identificador</th><th>Tipo</th><th class="num">Vínculos</th></tr></thead>
-                <tbody></tbody>
-              </table>
+        <!-- HERO: gráfico de pizza da escolaridade em destaque -->
+        <div class="block block-hero">
+          <h3 class="block-title">Distribuição de escolaridade
+            <button class="tip" type="button" aria-label="Ajuda: escolaridade"
+                    data-tip="Frequência e percentual dos vínculos por grau de instrução (GR INSTRUCAO). Valores -1, '{ñ class}' ou fora do domínio 1..11 são agrupados em 'Informação Não Disponível/Ignorada' para não distorcer a base de cálculo.">?</button>
+          </h3>
+          <div class="chart-row">
+            <div class="pie-wrap">
+              <canvas id="pie-escolaridade" width="320" height="320"
+                      aria-label="Gráfico de pizza da distribuição de escolaridade"></canvas>
             </div>
+            <div class="legend" id="legend-escolaridade"></div>
           </div>
+          <div class="table-wrap">
+            <table class="table" id="t-escolaridade">
+              <thead><tr><th>Cód.</th><th>Nível</th><th class="num">Freq.</th><th class="num">%</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
 
-          <div class="block">
-            <h3 class="block-title">Distribuição de escolaridade</h3>
-            <div class="chart-row">
-              <div class="pie-wrap">
-                <canvas id="pie-escolaridade" width="280" height="280"
-                        aria-label="Gráfico de pizza da distribuição de escolaridade"></canvas>
-              </div>
-              <div class="legend" id="legend-escolaridade"></div>
-            </div>
-            <div class="table-wrap">
-              <table class="table" id="t-escolaridade">
-                <thead><tr><th>Cód.</th><th>Nível</th><th class="num">Freq.</th><th class="num">%</th></tr></thead>
-                <tbody></tbody>
-              </table>
-            </div>
+        <div class="block">
+          <h3 class="block-title">Funcionários por estabelecimento
+            <button class="tip" type="button" aria-label="Ajuda: funcionários por estabelecimento"
+                    data-tip="Quantidade de vínculos (funcionários) de cada empresa identificada. Disponível apenas quando o arquivo possui a coluna de identificação do estabelecimento (Identificad/CNPJ).">?</button>
+          </h3>
+          <div class="table-wrap">
+            <table class="table" id="t-empresas">
+              <thead><tr><th>Identificador</th><th>Tipo</th><th class="num">Vínculos</th></tr></thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
 
