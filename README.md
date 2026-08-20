@@ -217,6 +217,7 @@ contínua; o arquivo **completo** (5 GB+) é reservado ao ambiente de produção
 |---|---|
 | [`docs/especificacao.md`](docs/especificacao.md) | Especificação técnica (requisitos, arquitetura, mapeamento, decisões) |
 | [`docs/manual.md`](docs/manual.md) | Manual de uso (CLI, web, amostra, índice, exemplos) |
+| [`docs/estatisticas-codigo.md`](docs/estatisticas-codigo.md) | Estatística do código (arquivos, linhas, funções, testes) |
 | [`handsoff.md`](handsoff.md) | Handoff para o próximo agente (continuação do desenvolvimento) |
 | [`docs/realtoriotecnico.txt`](docs/realtoriotecnico.txt) | Dicionário técnico de dados RAIS (fonte dos requisitos) |
 | [`docs/textoinicial.txt`](docs/textoinicial.txt) | Enunciado original do problema |

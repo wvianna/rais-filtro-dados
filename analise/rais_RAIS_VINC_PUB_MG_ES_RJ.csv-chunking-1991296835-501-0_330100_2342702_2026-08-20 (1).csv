@@ -1,0 +1,27 @@
+﻿RAIS · Filtro de Dados — Análise consolidada
+
+secao,chave,valor
+resumo,arquivo,RAIS_VINC_PUB_MG_ES_RJ.csv-chunking-1991296835-501-0
+resumo,municipio,330100
+resumo,subclasse,2342702
+resumo,modo,varredura_integral
+resumo,linhas_varridas,18648063
+resumo,vinculos,2357
+resumo,estabelecimentos,14
+resumo,estabelecimentos_estimado,sim
+resumo,vinculos_considerados,2357
+resumo,tempo_processamento_s,"86,769"
+
+distribuicao_escolaridade,codigo,rotulo,frequencia,percentual
+distribuicao_escolaridade,1,ANALFABETO,8,"0,3"
+distribuicao_escolaridade,2,ATE 5.A INC,42,"1,8"
+distribuicao_escolaridade,3,5.A CO FUND,345,"14,6"
+distribuicao_escolaridade,4,6. A 9. FUND,244,"10,4"
+distribuicao_escolaridade,5,FUND COMPL,1204,"51,1"
+distribuicao_escolaridade,6,MEDIO INCOMP,57,"2,4"
+distribuicao_escolaridade,7,MEDIO COMPL,420,"17,8"
+distribuicao_escolaridade,8,SUP. INCOMP,5,"0,2"
+distribuicao_escolaridade,9,SUP. COMP,32,"1,4"
+distribuicao_escolaridade,10,MESTRADO,0,"0,0"
+distribuicao_escolaridade,11,DOUTORADO,0,"0,0"
+distribuicao_escolaridade,-1,Informação Não Disponível/Ignorada,0,"0,0"
