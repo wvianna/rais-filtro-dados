@@ -33,6 +33,10 @@ make stop        # encerra
 make serve       # servidor em 1º plano (Ctrl+C)
 ```
 
+> `start.sh` **instala o ambiente automaticamente**: cria `.venv/` (se ausente)
+> e instala `requirements.txt` antes de iniciar (`--skip-install` pula).
+> Windows: `scripts/start.bat` / `scripts/stop.bat` (mesmo comportamento).
+
 - CLI direta: `export PYTHONPATH=src && python3 -m rais ...`
   (`files`, `schema`, `analyze`, `index`, `layouts`, `serve`).
 - Web: <http://127.0.0.1:8000/> — seleciona arquivo-base, autocompleta
@@ -48,13 +52,13 @@ make serve       # servidor em 1º plano (Ctrl+C)
 | `src/rais/schema.py` | Normalização de cabeçalho, detecção de separador, mapeamento lógico | `normalize_token` remove acentos/caixa e **junta** "2.0"→"20" |
 | `src/rais/domains.py` | Taxonomias (município, CNAE 2.0, escolaridade) e `is_ignored()` | `is_ignored` trata `-1`, `{ñ class}`, `{ñclass}`, vazio |
 | `src/rais/reader.py` | Leitura **streaming** + leitura por offsets (`seek`) | Nunca carrega o arquivo inteiro na RAM |
-| `src/rais/analyzer.py` | Motor: filtros, vínculos, empresas, escolaridade | **Lógica central do caso de uso** (item 5 do dicionário) |
+| `src/rais/analyzer.py` | Motor: filtros, vínculos, empresas, escolaridade | **Lógica central do caso de uso** (item 5 do dicionário); estimativa por chave composta quando não há `Identificad` |
 | `src/rais/index.py` | Índice persistente SQLite `(file,municipio,subclasse,offset)` | Consulta via índice lê só linhas candidatas |
 | `src/rais/files.py` | Lista arquivos de `dados/` (parcial/completa) | Limiar "completa" = 500 MiB |
 | `src/rais/server.py` | API JSON + estáticos (http.server) | Endpoints na seção 5 |
 | `src/rais/cli.py` | CLI (`python -m rais`) | — |
 | `src/rais/sample.py` | Gera amostra determinística **com coluna `Identificad`** | `EXPECTED` contém os números esperados |
-| `web/` | `index.html`, `styles.css`, `app.js` | Tema claro/escuro via `data-theme` + `localStorage` |
+| `web/` | `index.html`, `styles.css`, `app.js` | Tema claro/escuro via `data-theme`; spinner de processamento (`#processing`); pizza em canvas com legenda interativa (hover destaca a fatia); estimativa `≈` no card |
 | `scripts/start.sh` / `stop.sh` | Subir/derrubar serviço (PID/log em `run/`) | `run/` é gitignorado |
 | `scripts/make_sample.py`, `run_server.py` | Utilitários | — |
 
@@ -68,10 +72,13 @@ make serve       # servidor em 1º plano (Ctrl+C)
    `config.py` define os padrões.
 3. **Nenhum dos arquivos fornecidos tem coluna de identificação do
    estabelecimento** (`Identificad`/CNPJ) — verificado: 62 colunas no parcial
-   e no completo (5 GB). Consequência: a **contagem de empresas fica
-   "indisponível"** nesses arquivos (decisão deliberada: o sistema não inventa
-   número; exibe aviso). Vínculos e escolaridade continuam corretos.
-4. Para validar a contagem de empresas, use **`make sample`**
+   e no completo (5 GB). Consequência: sem essa coluna a contagem de empresas
+   passa a ser uma **ESTIMATIVA (≈) por chave composta** (decisão do usuário),
+   agrupando os atributos de nível-empresa listados em
+   `config.py::ESTIMATIVA_EMPRESA_FIELDS` e rotulando o resultado como
+   aproximado na interface. Com a coluna presente, a contagem é **exata**.
+   Vínculos e escolaridade são sempre exatos.
+4. Para validar a contagem **exata** de empresas, use **`make sample`**
    (`dados/amostra_com_identificador.csv`, 63 colunas = 62 + `Identificad`).
    O sistema detecta a coluna automaticamente quando presente.
 5. Códigos (município, CNAE, escolaridade) são **STRING** — nunca converter

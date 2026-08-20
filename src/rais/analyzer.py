@@ -123,15 +123,39 @@ def _matches(
     return True, mun, sub
 
 
+def _composite_empresa_key(fields: Sequence[str], sch: schema.Schema) -> Tuple[str, ...]:
+    """Chave composta de atributos de nível-empresa para ESTIMATIVA de empresas.
+
+    Usada quando o arquivo não possui a coluna de identificação: a estimativa
+    conta as combinações distintas destes campos (aproximação rotulada na
+    interface).  Valores "Ignorado" são colapsados em "" para não fragmentar
+    a chave.
+    """
+    partes: List[str] = []
+    for logical in config.ESTIMATIVA_EMPRESA_FIELDS:
+        idx = sch.column_of(logical)
+        if idx is None or idx >= len(fields):
+            partes.append("")
+            continue
+        valor = _clean(fields[idx])
+        if domains.is_ignored(valor):
+            partes.append("")
+        else:
+            partes.append(valor)
+    return tuple(partes)
+
+
 def _aggregate_row(
     fields: Sequence[str],
     sch: schema.Schema,
     dom: domains.Domains,
     contadores_esc: Dict[str, int],
-    est_set: Optional[set],
-    est_contagem: Optional[Dict[str, EstabelecimentoResumo]],
+    est_exato: Optional[set],
+    est_exato_contagem: Optional[Dict[str, EstabelecimentoResumo]],
+    est_estimado: set,
+    est_estimado_contagem: Dict[Tuple[str, ...], int],
 ) -> None:
-    """Acumula escolaridade e estabelecimentos de uma linha que casou."""
+    """Acumula escolaridade e estabelecimentos (exatos ou estimativa)."""
     # --- Escolaridade -------------------------------------------------------
     col_esc = sch.column_of("escolaridade")
     codigo_esc = None
@@ -147,27 +171,33 @@ def _aggregate_row(
         else:
             contadores_esc["__ignorado__"] = contadores_esc.get("__ignorado__", 0) + 1
 
-    # --- Estabelecimentos ---------------------------------------------------
-    if est_set is None or est_contagem is None:
+    # --- TIPO ESTBL: registros com tipo ignorado não entram na contagem de
+    #     estabelecimentos (realtoriotecnico.txt, item 5.2).
+    col_tipo = sch.column_of("tipo_estabelecimento")
+    tipo = None
+    if col_tipo is not None and col_tipo < len(fields):
+        tipo = _norm_code(fields[col_tipo])
+    if tipo is not None and domains.is_ignored(tipo):
+        return
+
+    # --- Estimativa por chave composta (sempre acumulada) -------------------
+    chave = _composite_empresa_key(fields, sch)
+    est_estimado.add(chave)
+    est_estimado_contagem[chave] = est_estimado_contagem.get(chave, 0) + 1
+
+    # --- Contagem exata (somente com coluna de identificação) ---------------
+    if est_exato is None or est_exato_contagem is None:
         return
     col_id = sch.column_of("identificador_estabelecimento")
-    col_tipo = sch.column_of("tipo_estabelecimento")
     if col_id is None or col_id >= len(fields):
         return
     identificador = _norm_code(fields[col_id])
     if identificador is None or domains.is_ignored(identificador):
         return
-    # Filtra por TIPO ESTBL: registros com tipo ignorado não entram na
-    # contagem de estabelecimentos (realtoriotecnico.txt, item 5.2).
-    if col_tipo is not None and col_tipo < len(fields):
-        tipo = _norm_code(fields[col_tipo])
-        if tipo is None or domains.is_ignored(tipo):
-            return
-
-    est_set.add(identificador)
-    resumo = est_contagem.setdefault(identificador, EstabelecimentoResumo(
+    est_exato.add(identificador)
+    resumo = est_exato_contagem.setdefault(identificador, EstabelecimentoResumo(
         identificador=identificador,
-        tipo_estabelecimento=(tipo or "") if (col_tipo is not None and col_tipo < len(fields)) else "",
+        tipo_estabelecimento=tipo or "",
     ))
     resumo.vinculos += 1
 
@@ -215,7 +245,8 @@ def analyze(
             "Arquivo sem coluna de escolaridade; distribuição indisponível."
         )
 
-    # Estabelecimentos: só é possível quando existe a coluna de identificação.
+    # Estabelecimentos: contagem exata quando há coluna de identificação;
+    # caso contrário, ESTIMATIVA por chave composta (rotulada na interface).
     if sch.present(config.DEFAULT_ESTABELECIMENTO_ID):
         est_set: set = set()
         est_contagem: Dict[str, EstabelecimentoResumo] = {}
@@ -224,9 +255,13 @@ def analyze(
         est_contagem = None
         resultado.avisos.append(
             "Arquivo sem coluna de identificação do estabelecimento (IDENTIFICAD/CNPJ). "
-            "A contagem de empresas fica indisponível neste arquivo; use um arquivo com "
-            "essa coluna (ex.: gerado por scripts/make_sample.py) ou a base RAIS oficial."
+            "A contagem de empresas é uma ESTIMATIVA por chave composta (aproximada); "
+            "use um arquivo com essa coluna para contagem exata."
         )
+
+    # Estimativa por chave composta (sempre acumulada como apoio/fallback).
+    est_estimado: set = set()
+    est_estimado_contagem: Dict[Tuple[str, ...], int] = {}
 
     contadores_esc: Dict[str, int] = {}
 
@@ -249,7 +284,7 @@ def analyze(
                     continue
                 resultado.linhas_analisadas += 1
                 resultado.vinculos += 1
-                _aggregate_row(fields, sch, dom, contadores_esc, est_set, est_contagem)
+                _aggregate_row(fields, sch, dom, contadores_esc, est_set, est_contagem, est_estimado, est_estimado_contagem)
 
     if not used_index:
         resultado.modo = "varredura_integral"
@@ -260,7 +295,7 @@ def analyze(
                 continue
             resultado.linhas_analisadas += 1
             resultado.vinculos += 1
-            _aggregate_row(fields, sch, dom, contadores_esc, est_set, est_contagem)
+            _aggregate_row(fields, sch, dom, contadores_esc, est_set, est_contagem, est_estimado, est_estimado_contagem)
 
     # ----------------------------------------------------- pós-processamento
     total_validos = resultado.vinculos - contadores_esc.get("__ignorado__", 0)
@@ -284,7 +319,7 @@ def analyze(
         "percentual": pct_ign,
     }
 
-    # Estabelecimentos (exatos) ou indisponível.
+    # Estabelecimentos: exato (coluna de identificação) ou estimativa.
     if est_set is not None and est_contagem is not None:
         por_est = sorted(
             (
@@ -299,6 +334,7 @@ def analyze(
         )
         resultado.estabelecimentos = {
             "disponivel": True,
+            "estimado": False,
             "modo": "exato (coluna de identificação)",
             "quantidade": len(por_est),
             "por_estabelecimento": por_est,
@@ -306,10 +342,13 @@ def analyze(
         }
     else:
         resultado.estabelecimentos = {
-            "disponivel": False,
-            "quantidade": None,
+            "disponivel": True,
+            "estimado": True,
+            "modo": "estimativa (chave composta · sem coluna de identificação)",
+            "quantidade": len(est_estimado),
             "por_estabelecimento": [],
-            "motivo": "arquivo sem coluna de identificação do estabelecimento",
+            "total_vinculos_considerados": sum(est_estimado_contagem.values()),
+            "motivo": "arquivo sem coluna de identificação; contagem aproximada por chave composta",
         }
 
     resultado.elapsed_s = time.monotonic() - started

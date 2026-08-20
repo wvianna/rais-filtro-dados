@@ -104,6 +104,26 @@ LOGICAL_FIELDS: Dict[str, LogicalField] = {
         "tipo_estabelecimento_nome",
         ("Tipo Estabelecimento - Nome", "TIPO ESTBL NOME"),
     ),
+    "natureza_juridica": LogicalField(
+        "natureza_juridica",
+        ("Natureza Jurídica - Código", "Natureza Juridica - Codigo", "NAT JURIDICA"),
+    ),
+    "tamanho_estabelecimento": LogicalField(
+        "tamanho_estabelecimento",
+        ("Tamanho Estabelecimento - Código", "Tamanho Estabelecimento - Codigo", "TAM ESTAB"),
+    ),
+    "ind_estabelecimento_simples": LogicalField(
+        "ind_estabelecimento_simples",
+        (
+            "Ind Estabelecimento Participante SIMPLES - Código",
+            "Ind Estabelecimento Participante SIMPLES - Codigo",
+            "IND ESTAB SIMPLES",
+        ),
+    ),
+    "ibge_subsetor": LogicalField(
+        "ibge_subsetor",
+        ("IBGE Subsetor - Código", "IBGE Subsetor - Codigo", "IBGE SUBSETOR"),
+    ),
     "identificador_estabelecimento": LogicalField(
         "identificador_estabelecimento",
         (
@@ -122,6 +142,23 @@ LOGICAL_FIELDS: Dict[str, LogicalField] = {
 # Coluna usada, por padrão, como identificador do estabelecimento
 # ("coluna de identificação" citada em realtoriotecnico.txt, item 5.2).
 DEFAULT_ESTABELECIMENTO_ID = "identificador_estabelecimento"
+
+# Campos de nível-empresa usados para a ESTIMATIVA de empresas quando o arquivo
+# não possui a coluna de identificação.  A estimativa conta as combinações
+# distintas desses atributos (chave composta) — aproximação claramente
+# rotulada na interface, pois sem Identificad/CNPJ não há identificador único.
+ESTIMATIVA_EMPRESA_FIELDS: List[str] = [
+    "municipio",
+    "subclasse_cnae20",
+    "classe_cnae20",
+    "classe_cnae95",
+    "tipo_estabelecimento",
+    "tipo_estabelecimento_nome",
+    "natureza_juridica",
+    "tamanho_estabelecimento",
+    "ind_estabelecimento_simples",
+    "ibge_subsetor",
+]
 
 # Domínios válidos de escolaridade (1..11) conforme layout oficial.
 ESCOLARIDADE_MIN = 1

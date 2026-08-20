@@ -86,6 +86,16 @@
         <span class="panel-index">02</span>
         <h2>Resultados</h2>
         <span class="scan-chip" id="scan-chip">aguardando consulta</span>
+        <button id="btn-export" class="btn ghost export-btn hidden" type="button"
+                title="Baixar os dados da análise consolidados em CSV">⬇ Exportar CSV</button>
+      </div>
+
+      <!-- indicador animado de processamento -->
+      <div id="processing" class="processing hidden" role="status" aria-live="polite">
+        <div class="processing-box">
+          <div class="spinner" aria-hidden="true"></div>
+          <span class="processing-text">Processando consulta</span>
+        </div>
       </div>
 
       <div id="empty-state" class="empty-state">
@@ -100,7 +110,7 @@
           <div class="card card-accent">
             <span class="card-label">Estabelecimentos (empresas)
               <button class="tip" type="button" aria-label="Ajuda: estabelecimentos"
-                      data-tip="Número de empresas/estabelecimentos distintos que atendem aos filtros (município + subclasse). A unicidade usa a coluna de identificação (Identificad/CNPJ), considerando apenas vínculos com TIPO ESTBL válido (não ignorado).">?</button>
+                      data-tip="Número de empresas/estabelecimentos que atendem aos filtros (município + subclasse). Com a coluna de identificação (Identificad/CNPJ) a contagem é exata; sem ela, é exibida uma ESTIMATIVA (≈) por chave composta — aproximada.">?</button>
             </span>
             <span class="card-value" id="r-empresas">–</span>
             <span class="card-sub" id="r-empresas-sub"></span>

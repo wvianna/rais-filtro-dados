@@ -66,18 +66,23 @@ class TestAnaliseArquivoParcial(unittest.TestCase):
         self.assertEqual(res.vinculos, 41)
         self.assertEqual(res.total_linhas, 299)
 
-    def test_estabelecimentos_indisponivel(self):
+    def test_estabelecimentos_estimativa(self):
+        # Sem coluna de identificação, o motor apresenta uma ESTIMATIVA por
+        # chave composta (não "indisponível") e registra o aviso.
         res = analyzer.analyze(PARTIAL, municipio="310620", subclasse="8513900")
-        self.assertFalse(res.estabelecimentos["disponivel"])
-        self.assertIsNone(res.estabelecimentos["quantidade"])
-        self.assertIn("identificação", res.estabelecimentos["motivo"].lower())
-        # aviso registrado
+        self.assertTrue(res.estabelecimentos["disponivel"])
+        self.assertTrue(res.estabelecimentos["estimado"])
+        self.assertGreaterEqual(res.estabelecimentos["quantidade"], 1)
+        # No arquivo parcial, todos os registros do grupo têm TIPO ESTBL válido.
+        self.assertEqual(res.estabelecimentos["total_vinculos_considerados"], 41)
+        self.assertIn("chave composta", res.estabelecimentos["modo"])
         self.assertTrue(any("identificação" in a.lower() for a in res.avisos))
 
     def test_sem_resultados(self):
         res = analyzer.analyze(PARTIAL, municipio="999999", subclasse="9999999")
         self.assertEqual(res.vinculos, 0)
         self.assertEqual(res.escolaridade[0].frequencia, 0)
+        self.assertEqual(res.estabelecimentos["quantidade"], 0)
 
     def test_filtro_apenas_municipio(self):
         res = analyzer.analyze(PARTIAL, municipio="330455")

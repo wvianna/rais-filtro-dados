@@ -3,7 +3,23 @@
 > Sistema de consulta e análise da base RAIS (vínculos) — implementação de
 > referência conforme [`docs/realtoriotecnico.txt`](docs/realtoriotecnico.txt).
 
-**Versão** `1.0.0` · **Requisitos** Python 3.10+ · **Dependências** apenas a biblioteca padrão (stdlib).
+**Versão** `1.0.0` · **Requisitos** Python 3.10+ · **Dependências** apenas a biblioteca padrão (stdlib) · **Plataformas** Linux/macOS (`start.sh`) e Windows (`start.bat`).
+
+---
+
+## Índice
+
+- [1. Visão geral](#1-visão-geral)
+- [2. Entregáveis](#2-entregáveis)
+- [3. Estrutura do projeto](#3-estrutura-do-projeto)
+- [4. Como executar](#4-como-executar)
+  - [4.1 Interface web (recomendada)](#41-interface-web-recomendada)
+  - [4.2 Linha de comando](#42-linha-de-comando)
+  - [4.3 Amostra de validação (com coluna de identificação)](#43-amostra-de-validação-com-coluna-de-identificação)
+- [5. Caso de uso de referência (2342702 em 330100)](#5-caso-de-uso-de-referência-2342702-em-330100)
+- [6. Testes](#6-testes)
+- [7. Limites e boas práticas](#7-limites-e-boas-práticas)
+- [8. Documentação adicional](#8-documentação-adicional)
 
 ---
 
@@ -37,8 +53,8 @@ CNAE 2.0**:
 | Item | Descrição |
 |---|---|
 | `src/rais/` | Pacote Python (motor de dados + API + CLI) |
-| `web/` | Frontend web (HTML/CSS/JS, sem build) |
-| `scripts/` | Scripts utilitários (`run_server.py`, `make_sample.py`, `start.sh`, `stop.sh`) |
+| `web/` | Frontend web (HTML/CSS/JS, sem build) — temas claro/escuro, tooltips, pizza interativa, **exportação CSV** |
+| `scripts/` | Utilitários: `run_server.py`, `make_sample.py`, `start.sh`/`stop.sh` (Linux/macOS), `start.bat`/`stop.bat` (Windows) |
 | `tests/` | Suíte de testes automatizados (43 testes) |
 | `docs/` | Especificação técnica e manual de uso |
 | `README.md` | Este documento |
@@ -76,9 +92,11 @@ src/rais/
   cli.py        Interface de linha de comando
   sample.py     Gerador de amostra determinística com Identificad
 web/                                Frontend (index.html, styles.css, app.js)
-scripts/                            run_server.py, make_sample.py, start.sh, stop.sh
+scripts/                            run_server.py, make_sample.py, start.sh, stop.sh,
+                                    start.bat, stop.bat (Windows)
 tests/                              Suíte de testes (unittest, stdlib)
 run/                                (gerado) pidfile e log do servidor
+.venv/                              (gerado) ambiente virtual Python (criado por start.sh)
 ```
 
 ---
@@ -92,13 +110,21 @@ make start                 # inicia em segundo plano (pid em run/server.pid)
 # ou: ./scripts/start.sh   # opções: --port 9000 --host 0.0.0.0 --foreground
 ```
 
+> O `start.sh` **instala o ambiente automaticamente**: cria `.venv/` (se não
+> existir) e instala as dependências de `requirements.txt` antes de iniciar o
+> serviço. Use `--skip-install` para pular essa etapa.
+
 Acesse <http://127.0.0.1:8000/>. Selecione o arquivo de base, informe
-município e/ou subclasse (há autocompletar) e clique em **Analisar**.
+município e/ou subclasse (há autocompletar) e clique em **Analisar**. Ao final,
+use **⬇ Exportar CSV** para baixar os dados consolidados da análise.
 
 ```bash
 make stop                  # encerra o serviço
 # ou: ./scripts/stop.sh
 ```
+
+> **Windows:** use `scripts\start.bat` (inicia; também instala o `.venv`) e
+> `scripts\stop.bat` (encerra). O PID fica em `run\server.pid`.
 
 > Alternativa em primeiro plano (Ctrl+C para parar):
 > `make serve` ou `python3 scripts/run_server.py --port 8000`.
@@ -143,10 +169,10 @@ Resultado esperado na amostra:
 > **Importante — contagem de empresas na base fornecida:** os arquivos RAIS
 > fornecidos (parcial e completo) **não** contêm a coluna de identificação do
 > estabelecimento (`IDENTIFICAD`/CNPJ). Sem ela é impossível distinguir
-> estabelecimentos; o sistema reporta "indisponível" com aviso claro, mantendo
-> corretas as métricas de vínculos e escolaridade. Para validar a contagem,
-> use `make sample` ou a base RAIS oficial completa (o sistema detecta a
-> coluna automaticamente quando presente).
+> empresas com exatidão; o sistema exibe então uma **estimativa (≈)** por
+> chave composta, rotulada como aproximada, mantendo exatas as métricas de
+> vínculos e escolaridade. Para contagem exata, use `make sample` ou a base
+> RAIS oficial completa (o sistema detecta a coluna automaticamente).
 
 ---
 

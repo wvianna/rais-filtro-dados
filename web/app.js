@@ -14,6 +14,7 @@ const state = {
   municipios: [],
   subclasses: [],
   current: null,
+  lastResult: null,
 };
 
 async function api(url, opts) {
@@ -104,6 +105,7 @@ function bindEvents() {
   $("#file-select").addEventListener("change", onFileChange);
   $("#btn-analyze").addEventListener("click", runAnalyze);
   $("#btn-index").addEventListener("click", buildIndex);
+  $("#btn-export").addEventListener("click", exportCsv);
   $("#btn-ref").addEventListener("click", () => {
     $("#municipio").value = "330100";
     $("#subclasse").value = "2342702";
@@ -186,9 +188,11 @@ async function runAnalyze() {
 
   const btn = $("#btn-analyze");
   const chip = $("#scan-chip");
+  const proc = $("#processing");
   btn.disabled = true;
   chip.textContent = "processando…";
   chip.classList.add("run");
+  if (proc) proc.classList.remove("hidden");
 
   try {
     const d = await api("/api/analyze", {
@@ -203,6 +207,7 @@ async function runAnalyze() {
   } finally {
     btn.disabled = false;
     chip.classList.remove("run");
+    if (proc) proc.classList.add("hidden");
   }
 }
 
@@ -210,24 +215,25 @@ function render(d) {
   $("#empty-state").classList.add("hidden");
   $("#results").classList.remove("hidden");
   $("#scan-chip").textContent = `${d.modo} · ${d.elapsed_s}s`;
+  state.lastResult = d;
+  $("#btn-export").classList.remove("hidden");
 
   const f = d.file || {};
   $("#footer-meta").textContent =
     `${d.arquivo} · ${d.total_linhas.toLocaleString("pt-BR")} linhas varridas · ${fmtInt(d.vinculos)} vínculos · ${d.elapsed_s}s`;
 
   // ---- avisos / banners
-  const banners = [];
-  for (const a of (d.avisos || [])) banners.push(a);
   const est = d.estabelecimentos || {};
-  if (est.disponivel === false) {
-    banners.push("A contagem de empresas está indisponível: este arquivo não possui a coluna de identificação do estabelecimento (IDENTIFICAD/CNPJ). Use a base RAIS oficial ou gere uma amostra com `python scripts/make_sample.py`.");
-  }
-  if (banners.length) showBanner(banners.join(" "), est.disponivel === false ? "warn" : "warn");
+  const banners = [...(d.avisos || [])];
+  if (banners.length) showBanner(banners.join(" "), "warn");
   else hideBanner();
 
   // ---- cards
-  $("#r-empresas").textContent = est.disponivel ? fmtInt(est.quantidade) : "—";
-  $("#r-empresas-sub").textContent = est.disponivel ? `modo: ${est.modo}` : "indisponível (sem coluna de identificação)";
+  const qtd = est.disponivel && est.quantidade != null ? est.quantidade : null;
+  $("#r-empresas").textContent = qtd == null ? "—" : (est.estimado ? "≈ " + fmtInt(qtd) : fmtInt(qtd));
+  $("#r-empresas-sub").textContent = est.estimado
+    ? "estimativa (sem coluna de identificação)"
+    : (est.disponivel ? `modo: ${est.modo}` : "indisponível");
   $("#r-vinculos").textContent = fmtInt(d.vinculos);
   $("#r-vinculos-sub").textContent = `filtros: ${d.filtros.municipio || "*"} · ${d.filtros.subclasse || "*"}`;
   $("#r-considerados").textContent = est.disponivel ? fmtInt(est.total_vinculos_considerados) : "—";
@@ -304,7 +310,15 @@ const ESCOLARIDADE_CORES = [
 
 let lastPieSlices = null;
 
-function drawPie(canvas, slices) {
+function hexToRgba(hex, alpha) {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function drawPie(canvas, slices, highlightIndex = -1) {
   if (!canvas) return;
   const dpr = window.devicePixelRatio || 1;
   const size = canvas.clientWidth || 280;
@@ -332,13 +346,19 @@ function drawPie(canvas, slices) {
   }
 
   let start = -Math.PI / 2;
-  for (const s of slices) {
+  for (let i = 0; i < slices.length; i++) {
+    const s = slices[i];
     const angle = ((s.freq || 0) / total) * 2 * Math.PI;
+    const isHi = i === highlightIndex;
+    const mid = start + angle / 2;
+    const pull = isHi ? 10 : 0;
+    const ox = cx + Math.cos(mid) * pull;
+    const oy = cy + Math.sin(mid) * pull;
     ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, radius, start, start + angle);
+    ctx.moveTo(ox, oy);
+    ctx.arc(ox, oy, radius, start, start + angle);
     ctx.closePath();
-    ctx.fillStyle = s.color;
+    ctx.fillStyle = highlightIndex >= 0 && !isHi ? hexToRgba(s.color, 0.3) : s.color;
     ctx.fill();
     ctx.strokeStyle = stroke;
     ctx.stroke();
@@ -348,19 +368,28 @@ function drawPie(canvas, slices) {
 
 function buildLegend(itens) {
   const leg = $("#legend-escolaridade");
+  const pie = $("#pie-escolaridade");
   if (!leg) return;
   leg.innerHTML = "";
-  for (const it of itens) {
-    const row = el("div", "legend-item");
-    const sw = el("span", "legend-swatch");
-    sw.style.background = it.color;
+  itens.forEach((it, idx) => {
+    const row = el("div", "legend-item" + (it.isIgnored ? " is-ignorada" : ""));
+    row.tabIndex = 0;
+    const sw = el("span", "legend-swatch" + (it.isIgnored ? " ignorada" : ""));
+    if (!it.isIgnored) sw.style.background = it.color;
     const txt = el("span", "legend-text");
     txt.appendChild(el("span", "legend-label", `${it.codigo} — ${it.label}`));
     txt.appendChild(el("span", "legend-value", `${fmtInt(it.freq)} · ${fmtPct(it.pct)}`));
     row.appendChild(sw);
     row.appendChild(txt);
+    // Legenda ligada ao gráfico: hover/foco destaca a fatia correspondente.
+    const hi = () => { if (pie) drawPie(pie, itens, idx); };
+    const lo = () => { if (pie) drawPie(pie, itens); };
+    row.addEventListener("mouseenter", hi);
+    row.addEventListener("mouseleave", lo);
+    row.addEventListener("focus", hi);
+    row.addEventListener("blur", lo);
     leg.appendChild(row);
-  }
+  });
 }
 
 function redrawPie() {
@@ -373,6 +402,67 @@ function showBanner(msg, kind) {
   b.textContent = msg;
   b.classList.remove("hidden", "error");
   if (kind === "error") b.classList.add("error");
+}
+
+/* ----------------------------------------------------- exportação CSV */
+function csvEscape(v) {
+  const s = String(v == null ? "" : v);
+  return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function buildAnalysisCsv(d) {
+  const est = d.estabelecimentos || {};
+  const ign = d.ignorados_escolaridade || {};
+  const f = d.file || {};
+  const linhas = [];
+  linhas.push("RAIS · Filtro de Dados — Análise consolidada");
+  linhas.push("");
+  linhas.push("secao,chave,valor");
+  linhas.push("resumo,arquivo," + csvEscape(f.name || d.arquivo || ""));
+  linhas.push("resumo,municipio," + csvEscape(d.filtros.municipio || ""));
+  linhas.push("resumo,subclasse," + csvEscape(d.filtros.subclasse || ""));
+  linhas.push("resumo,modo," + csvEscape(d.modo || ""));
+  linhas.push("resumo,linhas_varridas," + String(d.total_linhas ?? 0));
+  linhas.push("resumo,vinculos," + String(d.vinculos ?? 0));
+  linhas.push("resumo,estabelecimentos," + String(est.quantidade ?? ""));
+  linhas.push("resumo,estabelecimentos_estimado," + (est.estimado ? "sim" : "nao"));
+  linhas.push("resumo,vinculos_considerados," + String(est.total_vinculos_considerados ?? ""));
+  linhas.push("resumo,tempo_processamento_s," + String(d.elapsed_s ?? 0));
+  linhas.push("");
+  linhas.push("distribuicao_escolaridade,codigo,rotulo,frequencia,percentual");
+  for (const e of d.escolaridade || []) {
+    linhas.push("distribuicao_escolaridade," + [e.codigo, e.rotulo, e.frequencia, (e.percentual ?? 0).toFixed(1)].map(csvEscape).join(","));
+  }
+  linhas.push("distribuicao_escolaridade," + ["-1", ign.rotulo || "Informação Não Disponível/Ignorada", ign.frequencia ?? 0, (ign.percentual ?? 0).toFixed(1)].map(csvEscape).join(","));
+  if (est.disponivel && (est.por_estabelecimento || []).length) {
+    linhas.push("");
+    linhas.push("funcionarios_por_estabelecimento,identificador,tipo_estabelecimento,vinculos");
+    for (const e of est.por_estabelecimento) {
+      linhas.push("funcionarios_por_estabelecimento," + [e.identificador, e.tipo_estabelecimento || "", e.vinculos].map(csvEscape).join(","));
+    }
+  }
+  return linhas.join("\r\n");
+}
+
+function downloadCsv(filename, texto) {
+  const blob = new Blob(["\ufeff" + texto], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = el("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportCsv() {
+  if (!state.lastResult) return;
+  const base = (state.lastResult.arquivo || "analise").replace(/\.csv$/i, "");
+  const f = state.lastResult.filtros || {};
+  const dia = new Date().toISOString().slice(0, 10);
+  const nome = `rais_${base}_${f.municipio || "m"}_${f.subclasse || "s"}_${dia}.csv`;
+  downloadCsv(nome, buildAnalysisCsv(state.lastResult));
 }
 
 function hideBanner() {
